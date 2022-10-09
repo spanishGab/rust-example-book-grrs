@@ -26,12 +26,10 @@ fn main() {
     
     // println!("input args {}", args);
 
-    let file = File::open(args.path).expect("could not read file");
+    let file: File = File::open(args.path).expect("could not read file");
     let mut file_reader: BufReader<File> = BufReader::new(file);
 
-    let mut line = String::new();
-
-    file_reader.read_line(&mut line);
+    let mut line: String = String::new();
 
     loop {
         line.clear();
