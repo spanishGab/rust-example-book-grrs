@@ -5,6 +5,7 @@ use std::fmt;
 use std::io::BufRead;
 use std::fs::File;
 use std::io::BufReader;
+use anyhow::{Context, Result};
 
 /// Search for a pattern in a file and display the lines that contain it.
 #[derive(Parser)]
@@ -21,29 +22,35 @@ impl fmt::Display for Cli {
     }
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>>{
     let args: Cli = Cli::parse();
-    
-    // println!("input args {}", args);
 
-    let file: File = File::open(args.path).expect("could not read file");
+    let file: File = File::open(args.path)
+        .with_context(|| format!("Could not read file!"))?;
+
     let mut file_reader: BufReader<File> = BufReader::new(file);
 
     let mut line: String = String::new();
 
     loop {
-        line.clear();
-
-        file_reader.read_line(&mut line);
-
+        
+        match file_reader.read_line(&mut line) {
+            Ok(content) => {
+                if content == 0 {
+                    break;
+                }
+            },
+            Err(error) => {
+                return Err(error.into());
+            }
+        };
+        
         if line.contains(&args.pattern) {
             println!("{}", line);
         }
 
-        if line.is_empty() {
-            break
-        };
+        line.clear();
     }
 
-
+    Ok(())
 }
